@@ -1,0 +1,31 @@
+@hostname = localhost
+@port = 3001
+@host = http://{{hostname}}:{{port}}
+
+###
+
+POST {{host}}/api/customers HTTP/1.1
+Accept: application/json
+Content-Type: application/json
+
+{
+  "email": "John Do email",
+  "companyName": "myCompany",
+  "firstname": "john",
+  "lastname": "do"
+}
+
+###
+
+POST {{host}}/api/customers HTTP/1.1
+Accept: application/json
+Content-Type: application/json
+
+{
+  "email": "test1@email",
+  "companyName": "myCompany",
+  "firstname": "test1",
+  "lastname": "test1"
+}
+
+
