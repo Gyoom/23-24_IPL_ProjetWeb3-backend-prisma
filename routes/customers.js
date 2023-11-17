@@ -28,6 +28,22 @@ router.get("/:id", async (req, res, next) => {
     }).catch(err => next(err))
 })
 
+// Find by Email
+router.get("/email/:email", async (req, res, next) => {
+    await prisma.customer.findUnique({
+        where: {
+            email: parseInt(req.params.email),
+        }
+    })
+    .then(customer => {
+        if (customer) {
+        res.json(customer)
+        } else {
+        throw new NotFoundError()
+        }
+    }).catch(err => next(err))
+})
+
 // Delete one
 router.delete("/:id", async (req, res, next) => {
     await prisma.customer.delete({
@@ -111,7 +127,7 @@ router.put("/:id", async (req, res, next) => {
 
 
     // Update
-    await prisma.user.update({
+    await prisma.employee.update({
         where: {
             email: body.email,
         },

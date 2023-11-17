@@ -1,0 +1,53 @@
+@hostname = localhost
+@port = 3001
+@host = http://{{hostname}}:{{port}}
+
+@objectId = 9
+@missingObjectId = 5
+
+### GET ALL
+
+GET {{host}}/api/products HTTP/1.1
+Accept: application/json
+
+### GET ONE
+
+GET {{host}}/api/products/{{objectId}} HTTP/1.1
+Accept: application/json
+
+###
+
+GET {{host}}/api/products/{{missingObjectId}} HTTP/1.1
+Accept: application/json
+
+### POST
+
+POST {{host}}/api/products HTTP/1.1
+Accept: application/json
+Content-Type: application/json
+
+{
+  "productName": "Ballon de basket",
+  "unitPrice": 1
+}
+
+###
+
+POST {{host}}/api/products HTTP/1.1
+Accept: application/json
+Content-Type: application/json
+
+{
+  "productName": "Chaussures de sport",
+  "unitPrice": 1
+}
+
+### DELETE
+
+DELETE {{host}}/api/products/{{objectId}} HTTP/1.1
+Accept: application/json
+
+###
+
+DELETE {{host}}/api/products/{{missingObjectId}} HTTP/1.1
+Accept: application/json

@@ -2,7 +2,25 @@
 @port = 3001
 @host = http://{{hostname}}:{{port}}
 
+@customerId = 9
+@missingCustomerId = 5
+
+### GET ALL
+
+GET {{host}}/api/customers HTTP/1.1
+Accept: application/json
+
+### GET ONE
+
+GET {{host}}/api/customers/{{customerId}} HTTP/1.1
+Accept: application/json
+
 ###
+
+GET {{host}}/api/customers/{{missingCustomerId}} HTTP/1.1
+Accept: application/json
+
+### POST
 
 POST {{host}}/api/customers HTTP/1.1
 Accept: application/json
@@ -28,4 +46,12 @@ Content-Type: application/json
   "lastname": "test1"
 }
 
+### DELETE
 
+DELETE {{host}}/api/customers/{{customerId}} HTTP/1.1
+Accept: application/json
+
+###
+
+DELETE {{host}}/api/customers/{{missingCustomerId}} HTTP/1.1
+Accept: application/json

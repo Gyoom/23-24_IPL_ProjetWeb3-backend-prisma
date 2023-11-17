@@ -14,8 +14,9 @@ datasource db {
 
 model Employee {
   id          Int         @id @default(autoincrement())
-  firstname   String?     @db.VarChar(255)
-  lastname    String?     @db.VarChar(255)
+  firstname   String      @db.VarChar(255)
+  lastname    String      @db.VarChar(255)
+  email       String      @unique
   role        Role        @default(USER)
   login       String      @db.VarChar(255)
   password    String
@@ -50,7 +51,7 @@ model OrderDetail {
 model Customer {
   id          Int      @id @default(autoincrement())
   email       String   @unique
-  companyName String?   @db.VarChar(255)
+  companyName String?  @db.VarChar(255)
   firstname   String   @db.VarChar(255)
   lastname    String   @db.VarChar(255)
   orders      Order[]
