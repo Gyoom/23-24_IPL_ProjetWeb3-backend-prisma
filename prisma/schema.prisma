@@ -54,6 +54,7 @@ model Customer {
   companyName String?  @db.VarChar(255)
   firstname   String   @db.VarChar(255)
   lastname    String   @db.VarChar(255)
+  password    String   @db.VarChar(255)
   orders      Order[]
 }
 

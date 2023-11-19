@@ -3,6 +3,7 @@
 @host = http://{{hostname}}:{{port}}
 
 @customerId = 9
+@customerEmail = test1@email
 @missingCustomerId = 5
 
 ### GET ALL
@@ -18,6 +19,11 @@ Accept: application/json
 ###
 
 GET {{host}}/api/customers/{{missingCustomerId}} HTTP/1.1
+Accept: application/json
+
+### GET BY EMAIL
+
+GET {{host}}/api/customers/email/{{customerEmail}} HTTP/1.1
 Accept: application/json
 
 ### POST

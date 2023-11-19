@@ -32,7 +32,7 @@ router.get("/:id", async (req, res, next) => {
 router.get("/email/:email", async (req, res, next) => {
     await prisma.customer.findUnique({
         where: {
-            email: parseInt(req.params.email),
+            email: req.params.email,
         }
     })
     .then(customer => {
