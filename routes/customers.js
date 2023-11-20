@@ -19,11 +19,13 @@ router.get("/:id", async (req, res, next) => {
             id: parseInt(req.params.id),
         }
     })
-    .then(customer => {
-        if (customer) {
-        res.json(customer)
+    .then(customerFound => {
+        if (customerFound) {
+            res.json(customerFound)
         } else {
-        throw new NotFoundError()
+            errorMessages = []
+            errorMessages.push("customer not found")
+            res.status(404).json({ errorMessages })
         }
     }).catch(err => next(err))
 })
@@ -35,28 +37,46 @@ router.get("/email/:email", async (req, res, next) => {
             email: req.params.email,
         }
     })
-    .then(customer => {
-        if (customer) {
-        res.json(customer)
+    .then(customerFound => {
+        if (customerFound) {
+            res.json(customerFound)
         } else {
-        throw new NotFoundError()
+            errorMessages = []
+            errorMessages.push("customer not found")
+            res.status(404).json({ errorMessages })
         }
     }).catch(err => next(err))
 })
 
 // Delete one
 router.delete("/:id", async (req, res, next) => {
+    // Check existing
+    var isCustomerExist = true;
+    await prisma.customer.findUnique({
+        where: {
+            id: parseInt(req.params.id),
+        }
+    })
+    .then(existingCustomer => {
+        if (existingCustomer === null) {
+            isCustomerExist = false;
+            errorMessages = []
+            errorMessages.push("customer not found")
+            res.status(404).json({ errorMessages })
+        }
+    }).catch(err => next(err))
+
+    if (!isCustomerExist)
+        return
+
+    // delete existing customer
     await prisma.customer.delete({
         where: {
-        id: parseInt(req.params.id),
+            id: parseInt(req.params.id),
         },
     })
-    .then(result => {
-            if (result) {
-            res.json(result)
-            } else {
-            throw new NotFoundError()
-            }
+    .then(deletedCustomer => {
+        res.json(deletedCustomer)
     })
     .catch(err => next(err))
 });
@@ -64,69 +84,87 @@ router.delete("/:id", async (req, res, next) => {
 // Insert one
 router.post("/", async (req, res, next) => {
     const body = req.body
-    // Check body
+    // Check bodyparam
     const errorMessages = []
     if (!body.email) errorMessages.push("email must be present")
     if (!body.firstname) errorMessages.push("firstname must be present")
     if (!body.lastname) errorMessages.push("firstname must be present")
+    if (!body.password) errorMessages.push("password must be present")
     
     if (errorMessages.length > 0) {
         res.status(422).json({ errorMessages })
         return
     }
+
     // Check existing
+    var isCustomerExist = false;
     await prisma.customer.findUnique({
         where: {
             email: body.email,
         }
     })
     .then(customer => {
-        if (customer && customer.length > 0) {
+        if (customer) {
             errorMessages.push("email must be unique")
             res.status(422).json({ errorMessages })
+            isCustomerExist = true;
         }
+
     }).catch(err => next(err))
+
+    if (isCustomerExist)
+        return
     // add new db object
     let customer = {
         email: body.email,
         companyName: body.companyName,
         firstname: body.firstname,
-        lastname: body.lastname
+        lastname: body.lastname,
+        password: body.password
     }
 
     await prisma.customer.create({
         data: customer
       })
+      .then(createdCustomer => {
+        res.status(200).json(createdCustomer)
+      })
+      .catch(err => next(err))      
 })
 
 // Update one
 router.put("/:id", async (req, res, next) => {
     const body = req.body
-    // Check body
+    // Check body params
     const errorMessages = []
     if (!body.email) errorMessages.push("email must be present")
     if (!body.firstname) errorMessages.push("firstname must be present")
     if (!body.lastname) errorMessages.push("firstname must be present")
+    if (!body.password) errorMessages.push("password must be present")
     
     if (errorMessages.length > 0) {
         res.status(422).json({ errorMessages })
         return
     }
     // Check existing
+    var isCustomerExist = true;
     await prisma.customer.findUnique({
         where: {
             email: body.email,
         }
     })
     .then(customer => {
-        if (customer && customer.length > 0) {
-            errorMessages.push("email must be unique")
-            res.status(422).json({ errorMessages })
+        if (!customer) {
+            errorMessages.push("customer not found")
+            res.status(404).json({ errorMessages })
+            isCustomerExist = false;
         }
     }).catch(err => next(err))
 
+    if (!isCustomerExist)
+        return
 
-    // Update
+    // Update existing user
     await prisma.employee.update({
         where: {
             email: body.email,
@@ -135,15 +173,12 @@ router.put("/:id", async (req, res, next) => {
             email: body.email,
             companyName: body.companyName,
             firstname: body.firstname,
-            lastname: body.lastname
+            lastname: body.lastname,
+            password: body.password
         }
     })
     .then(updatedCustomer => {
-        if (updatedCustomer) {
-            res.json(updatedCustomer)
-        } else {
-            throw new NotFoundError()
-        }
+        res.status(200).json(updatedCustomer)
     })
     .catch(error => next(error))
 })

@@ -1,4 +1,4 @@
-const {MONGODB_URI, PORT} = require('./utils/config')
+const { PORT } = require('./utils/config')
 
 const express = require("express")
 

@@ -19,28 +19,46 @@ router.get("/:id", async (req, res, next) => {
             id: parseInt(req.params.id),
         }
     })
-    .then(product => {
-        if (product) {
-        res.json(product)
+    .then(productFound => {
+        if (productFound) {
+            res.json(productFound)
         } else {
-        throw new NotFoundError()
+            errorMessages = []
+            errorMessages.push("product not found")
+            res.status(404).json({ errorMessages })
         }
     }).catch(err => next(err))
 })
 
 // Delete one
 router.delete("/:id", async (req, res, next) => {
+    // Check existing
+    var isProductExist = true;
+    await prisma.product.findUnique({
+        where: {
+            id: parseInt(req.params.id),
+        }
+    })
+    .then(existingProduct => {
+        if (existingProduct === null) {
+            isProductExist = false;
+            errorMessages = []
+            errorMessages.push("product not found")
+            res.status(404).json({ errorMessages })
+        }
+    }).catch(err => next(err))
+
+    if (!isProductExist)
+        return
+
+    // delete existing product
     await prisma.product.delete({
         where: {
-        id: parseInt(req.params.id),
+            id: parseInt(req.params.id),
         },
     })
     .then(deletedProduct => {
-            if (deletedProduct) {
-            res.json(deletedProduct)
-            } else {
-            throw new NotFoundError()
-            }
+        res.json(deletedProduct)
     })
     .catch(err => next(err))
 });
@@ -48,68 +66,75 @@ router.delete("/:id", async (req, res, next) => {
 // Insert one
 router.post("/", async (req, res, next) => {
     const body = req.body
-    // Check body
+    // Check bodyparam
     const errorMessages = []
-    if (!body.productName) errorMessages.push("Product name must be present")
-    if (!body.unitPrice) errorMessages.push("Unit Price must be present")
+    if (!body.productName) errorMessages.push("productName must be present")
+    if (!body.unitPrice) errorMessages.push("unitPrice must be present")
     
     if (errorMessages.length > 0) {
         res.status(422).json({ errorMessages })
         return
     }
+
     // add new db object
-    let newProduct = {
+    let product = {
         productName: body.productName,
-        unitPrice: body.unitPrice
+        unitPrice : body.unitPrice,
+        description : body.description
     }
 
     await prisma.product.create({
-        data: newProduct
+        data: product
       })
+      .then(createdProduct => {
+        res.status(200).json(createdProduct)
+      })
+      .catch(err => next(err))      
 })
 
 // Update one
 router.put("/:id", async (req, res, next) => {
     const body = req.body
-    // Check body
+    // Check body params
     const errorMessages = []
-    if (!body.productName) errorMessages.push("Product name must be present")
-    if (!body.unitPrice) errorMessages.push("Unit Price must be present")
+    if (!body.productName) errorMessages.push("productName must be present")
+    if (!body.unitPrice) errorMessages.push("unitPrice must be present")
     
     if (errorMessages.length > 0) {
         res.status(422).json({ errorMessages })
         return
     }
     // Check existing
+    var isProductExist = true;
     await prisma.product.findUnique({
         where: {
             id: parseInt(req.params.id),
         }
     })
-    .then(existingProduct => {
-        if (existingProduct && existingProduct.length > 0) {
-            errorMessages.push("email must be unique")
-            res.status(422).json({ errorMessages })
+    .then(product => {
+        if (!product) {
+            errorMessages.push("product not found")
+            res.status(404).json({ errorMessages })
+            isProductExist = false;
         }
     }).catch(err => next(err))
 
+    if (!isProductExist)
+        return
 
-    // Update
+    // Update existing user
     await prisma.product.update({
         where: {
             id: parseInt(req.params.id),
         },
         data: {
             productName: body.productName,
-            unitPrice: body.unitPrice
+            unitPrice : body.unitPrice,
+            description : body.description
         }
     })
     .then(updatedProduct => {
-        if (updatedProduct) {
-            res.json(updatedProduct)
-        } else {
-            throw new NotFoundError()
-        }
+        res.status(200).json(updatedProduct)
     })
     .catch(error => next(error))
 })

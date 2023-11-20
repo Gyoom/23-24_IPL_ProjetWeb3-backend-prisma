@@ -5,12 +5,16 @@
 @objectId = 9
 @missingObjectId = 5
 
+###
 ### GET ALL
+###
 
 GET {{host}}/api/ordersdetails HTTP/1.1
 Accept: application/json
 
+###
 ### GET ONE
+###
 
 GET {{host}}/api/ordersdetails/{{objectId}} HTTP/1.1
 Accept: application/json
@@ -20,7 +24,9 @@ Accept: application/json
 GET {{host}}/api/ordersdetails/{{missingObjectId}} HTTP/1.1
 Accept: application/json
 
-### POST
+###
+### POST ONE
+###
 
 POST {{host}}/api/ordersdetails HTTP/1.1
 Accept: application/json
@@ -46,7 +52,9 @@ Content-Type: application/json
   "lastname": "test1"
 }
 
-### DELETE
+###
+### DELETE ONE
+###
 
 DELETE {{host}}/api/ordersdetails/{{objectId}} HTTP/1.1
 Accept: application/json

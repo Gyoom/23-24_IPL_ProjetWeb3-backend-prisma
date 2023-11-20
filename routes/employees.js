@@ -19,11 +19,13 @@ router.get("/:id", async (req, res, next) => {
             id: parseInt(req.params.id),
         }
     })
-    .then(employee => {
-        if (employee) {
-        res.json(employee)
+    .then(employeeFound => {
+        if (employeeFound) {
+            res.json(employeeFound)
         } else {
-        throw new NotFoundError()
+            errorMessages = []
+            errorMessages.push("employee not found")
+            res.status(404).json({ errorMessages })
         }
     }).catch(err => next(err))
 })
@@ -32,31 +34,49 @@ router.get("/:id", async (req, res, next) => {
 router.get("/email/:email", async (req, res, next) => {
     await prisma.employee.findUnique({
         where: {
-            email: parseInt(req.params.email),
+            email: req.params.email,
         }
     })
-    .then(employee => {
-        if (employee) {
-        res.json(employee)
+    .then(employeeFound => {
+        if (employeeFound) {
+            res.json(employeeFound)
         } else {
-        throw new NotFoundError()
+            errorMessages = []
+            errorMessages.push("employee not found")
+            res.status(404).json({ errorMessages })
         }
     }).catch(err => next(err))
 })
 
 // Delete one
 router.delete("/:id", async (req, res, next) => {
+    // Check existing
+    var isEmployeeExist = true;
+    await prisma.employee.findUnique({
+        where: {
+            id: parseInt(req.params.id),
+        }
+    })
+    .then(existingEmployee => {
+        if (existingEmployee === null) {
+            isEmployeeExist = false;
+            errorMessages = []
+            errorMessages.push("employee not found")
+            res.status(404).json({ errorMessages })
+        }
+    }).catch(err => next(err))
+
+    if (!isEmployeeExist)
+        return
+
+    // delete existing employee
     await prisma.employee.delete({
         where: {
-        id: parseInt(req.params.id),
+            id: parseInt(req.params.id),
         },
     })
-    .then(employee => {
-            if (employee) {
-            res.json(employee)
-            } else {
-            throw new NotFoundError()
-            }
+    .then(deletedEmployee => {
+        res.json(deletedEmployee)
     })
     .catch(err => next(err))
 });
@@ -64,90 +84,106 @@ router.delete("/:id", async (req, res, next) => {
 // Insert one
 router.post("/", async (req, res, next) => {
     const body = req.body
-    // Check body
-    // Todo 
+    // Check bodyparam
     const errorMessages = []
     if (!body.email) errorMessages.push("email must be present")
     if (!body.firstname) errorMessages.push("firstname must be present")
     if (!body.lastname) errorMessages.push("firstname must be present")
+    if (!body.password) errorMessages.push("password must be present")
     
     if (errorMessages.length > 0) {
         res.status(422).json({ errorMessages })
         return
     }
+
     // Check existing
+    var isEmployeeExist = false;
     await prisma.employee.findUnique({
         where: {
             email: body.email,
         }
     })
-    .then(employee => {
-        if (employee && employee.length > 0) {
+    .then(employeeFound => {
+        if (employeeFound) {
             errorMessages.push("email must be unique")
             res.status(422).json({ errorMessages })
+            isEmployeeExist = true;
         }
+
     }).catch(err => next(err))
+
+    if (isEmployeeExist)
+        return
     // add new db object
-    // todo
     let employee = {
         email: body.email,
-        companyName: body.companyName,
         firstname: body.firstname,
-        lastname: body.lastname
+        lastname: body.lastname,
+        password: body.password,
+        role : body.role ? body.role : "USER",
+        managerId : body.managerId ? body.managerId : null
     }
 
     await prisma.employee.create({
         data: employee
       })
+      .then(createdEmployee => {
+        res.status(200).json(createdEmployee)
+      })
+      .catch(err => next(err))      
 })
 
 // Update one
 router.put("/:id", async (req, res, next) => {
     const body = req.body
-    // Check body
+    // Check body params
     const errorMessages = []
     if (!body.email) errorMessages.push("email must be present")
     if (!body.firstname) errorMessages.push("firstname must be present")
     if (!body.lastname) errorMessages.push("firstname must be present")
+    if (!body.password) errorMessages.push("password must be present")
     
     if (errorMessages.length > 0) {
         res.status(422).json({ errorMessages })
         return
     }
     // Check existing
+    var isEmployeeExist = true;
     await prisma.employee.findUnique({
         where: {
             email: body.email,
         }
     })
     .then(employee => {
-        if (employee && employee.length > 0) {
-            errorMessages.push("email must be unique")
-            res.status(422).json({ errorMessages })
+        if (!employee) {
+            errorMessages.push("employee not found")
+            res.status(404).json({ errorMessages })
+            isEmployeeExist = false;
         }
     }).catch(err => next(err))
 
+    if (!isEmployeeExist)
+        return
 
-    // Update
+    // Update existing user
     await prisma.employee.update({
         where: {
             email: body.email,
         },
         data: {
             email: body.email,
-            companyName: body.companyName,
             firstname: body.firstname,
-            lastname: body.lastname
+            lastname: body.lastname,
+            password: body.password,
+            role : body.role,
+            managerId : body.managerId
         }
     })
     .then(updatedEmployee => {
-        if (updatedEmployee) {
-            res.json(updatedEmployee)
-        } else {
-            throw new NotFoundError()
-        }
+        res.status(200).json(updatedEmployee)
     })
     .catch(error => next(error))
 })
+
 
 module.exports = router

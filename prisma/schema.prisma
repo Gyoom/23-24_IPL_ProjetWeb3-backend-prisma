@@ -17,9 +17,8 @@ model Employee {
   firstname   String      @db.VarChar(255)
   lastname    String      @db.VarChar(255)
   email       String      @unique
+  password    String      @db.VarChar(255)
   role        Role        @default(USER)
-  login       String      @db.VarChar(255)
-  password    String
   managerId   Int?
   manager     Employee?   @relation("test", fields: [managerId], references: [id])
   subaltern   Employee[]  @relation("test")
@@ -32,8 +31,8 @@ model Order {
   id            Int       @id @default(autoincrement())
   customer      Customer  @relation(fields: [customerId], references: [id])
   customerId    Int
-  employee      Employee  @relation(fields: [employeeId], references: [id])
-  employeeId    Int
+  employee      Employee?  @relation(fields: [employeeId], references: [id])
+  employeeId    Int?
   orderDetails OrderDetail[]
 }
 
@@ -62,6 +61,7 @@ model Product {
   id            Int             @id @default(autoincrement())
   productName   String          @db.VarChar(255)
   unitPrice     Float
+  description   String          @default(" no descriptions added")   
   ordersDetails OrderDetail[]
 }
 
